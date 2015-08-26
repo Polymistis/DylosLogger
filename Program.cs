@@ -10,7 +10,7 @@ namespace DylosDetector
 	{
 		public static void Main(string[] args)
 		{
-            Application.Run(new MainForm());
+			Application.Run(new MainForm());
 		}
 	}
 }
