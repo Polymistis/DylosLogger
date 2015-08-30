@@ -12,6 +12,13 @@ namespace DylosDetector
 {
 	public partial class MainForm : Form
 	{
+		// This delegate enables asynchronous calls for setting
+		// the text property on a TextBox control.
+		delegate void SetTextCallback(string text);
+
+		public string smallParticleMessage;
+		public string largeParticleMessage;
+
 		private DylosGraphiteConnection dylos = null;
 
 		private bool hasAddress = false;
@@ -20,7 +27,7 @@ namespace DylosDetector
 		public MainForm()
 		{
 			InitializeComponent();
-			dylos = new DylosGraphiteConnection(logBox);
+			dylos = new DylosGraphiteConnection(this);
 		}
 
 		private void startLogging_Click(object sender, EventArgs e)
@@ -68,16 +75,18 @@ namespace DylosDetector
 			startLogging.Enabled = hasAddress && hasPort;
 		}
 
-		private void label1_Click(object sender, EventArgs e)
+
+		public void SetLogBoxText(string text)
 		{
-
+			if (logBox.InvokeRequired)
+			{
+				SetTextCallback d = new SetTextCallback(SetLogBoxText);
+				this.Invoke(d, new object[] {text});
+			}
+			else
+			{
+				logBox.AppendText(text);
+			}
 		}
-
-		private void label2_Click(object sender, EventArgs e)
-		{
-
-		}
-
-		
 	}
 }

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 using System.IO.Ports;
 using System.Net.Sockets;
+using System.ComponentModel;
 using System.Diagnostics;
 
 namespace DylosDetector
@@ -11,13 +12,15 @@ namespace DylosDetector
 	{
 		private SerialPort particleSensorSerialPort = null;
 
-		private System.Windows.Forms.TextBox logBox = null;
+		private MainForm mainForm = null;
 		public string graphiteAddress;
 		public int graphitePort;
 
-		public DylosGraphiteConnection(System.Windows.Forms.TextBox textbox)
+		
+
+		public DylosGraphiteConnection(MainForm form)
 		{
-			logBox = textbox;
+			mainForm = form;
 		}
 
 		~DylosGraphiteConnection()
@@ -29,6 +32,7 @@ namespace DylosDetector
 		{
 			SerialPort sp = (SerialPort)sender;
 			string indata = sp.ReadExisting();
+			Debug.Print(indata);
 			indata = indata.Trim();
 			string[] inDataArray = indata.Split(',');
 
@@ -46,19 +50,25 @@ namespace DylosDetector
 
 				TimeSpan t = (DateTime.UtcNow - new DateTime(1970, 1, 1));
 				int currentEpochTime = (int)t.TotalSeconds;
-				string smallParticleMessage = string.Format("lwells.dylos.small_particle {0} {1}\n", inDataArray[0], currentEpochTime);
-				string largeParticleMessage = string.Format("lwells.dylos.large_particle {0} {1}\n", inDataArray[1], currentEpochTime);
+				mainForm.smallParticleMessage = string.Format("lwells.dylos.small_particle {0} {1}\n", inDataArray[0], currentEpochTime);
+				mainForm.largeParticleMessage = string.Format("lwells.dylos.large_particle {0} {1}\n", inDataArray[1], currentEpochTime);
 
-				Debug.Print(smallParticleMessage);
-				Debug.Print(largeParticleMessage);
+				Debug.Print(mainForm.smallParticleMessage);
+				Debug.Print(mainForm.largeParticleMessage);
 
-				//logBox.Text += smallParticleMessage;
-				//logBox.Text += largeParticleMessage;
+				mainForm.SetLogBoxText(mainForm.smallParticleMessage);
+				mainForm.SetLogBoxText(mainForm.largeParticleMessage);
 
-				sendingSocket.Send(Encoding.UTF8.GetBytes(smallParticleMessage));
-				sendingSocket.Send(Encoding.UTF8.GetBytes(largeParticleMessage));
+				sendingSocket.Send(Encoding.UTF8.GetBytes(mainForm.smallParticleMessage));
+				sendingSocket.Send(Encoding.UTF8.GetBytes(mainForm.largeParticleMessage));
 
 				sendingSocket.Close();
+
+				SendHandshake();
+			}
+			else if (inDataArray.Count<string>() == 1)
+			{
+				mainForm.SetLogBoxText(inDataArray[0]);
 			}
 		}
 
@@ -73,8 +83,9 @@ namespace DylosDetector
 
 			string targetSerialPort = serialPortNames[0]; // Eh, just pick the first one
 
-			SerialPort particleSensorSerialPort = new SerialPort(targetSerialPort);
+			particleSensorSerialPort = new SerialPort(targetSerialPort);
 			Console.WriteLine("Opening Serial Port: " + targetSerialPort);
+			mainForm.logBox.AppendText("Opening Serial Port: " + targetSerialPort + "\n");
 
 			particleSensorSerialPort.BaudRate = 9600;
 			particleSensorSerialPort.Parity = Parity.None;
@@ -84,14 +95,20 @@ namespace DylosDetector
 			particleSensorSerialPort.DataReceived += new SerialDataReceivedEventHandler(DataReceivedHandler);
 
 			particleSensorSerialPort.Open();
-
-			//Console.WriteLine("Press any key to close...");
-			//Console.WriteLine();
-			//Console.ReadKey();
-			//particleSensorSerialPort.Close();
+			SendHandshake();
 
 			return true;
 		}
+
+		private void SendHandshake()
+		{
+			if (particleSensorSerialPort != null)
+			{
+				//byte[] handshakeByteArray = Encoding.UTF8.GetBytes("Y");
+				particleSensorSerialPort.WriteLine("Y");
+			}
+		}
+
 
 		public void Disconnect()
 		{

@@ -108,7 +108,6 @@
 			this.label1.Size = new System.Drawing.Size(45, 13);
 			this.label1.TabIndex = 8;
 			this.label1.Text = "Address";
-			this.label1.Click += new System.EventHandler(this.label1_Click);
 			// 
 			// label2
 			// 
@@ -118,7 +117,6 @@
 			this.label2.Size = new System.Drawing.Size(26, 13);
 			this.label2.TabIndex = 9;
 			this.label2.Text = "Port";
-			this.label2.Click += new System.EventHandler(this.label2_Click);
 			// 
 			// MainForm
 			// 
@@ -144,11 +142,11 @@
 
         private System.Windows.Forms.Button startLogging;
         private System.Windows.Forms.Button stopLogging;
-        private System.Windows.Forms.Label loggingStatus;
-        private System.Windows.Forms.TextBox logBox;
+		private System.Windows.Forms.Label loggingStatus;
 		private System.Windows.Forms.TextBox textBoxAddress;
 		private System.Windows.Forms.TextBox textBoxPort;
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.Label label2;
+		public System.Windows.Forms.TextBox logBox;
     }
 }
